@@ -30,7 +30,9 @@
     
     const error = document.getElementById("error");
     function logErr(msg){
-        error.innerHTML = error.innerHTML + "<br/>" + msg.toString();
+        const p = document.createElement("p");
+        p.innerText = msg.toString ? msg.toString() : msg;
+        error.appendChild(p);
     }
     logErr("LOG");
     
