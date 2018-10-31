@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<title></title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    #canvas {
+        background:#fff;
+        box-shadow: 0 0.1em 0.5em #888;
+        border-radius: 250px;
+    }
+    #ctrl input {
+        width: 400px;
+        margin: 1em;
+    }
+</style>
+</head>
+<body>
+
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <div id="ctrl">
+      <p>周波数<input type="range" id="freq" min="1" max="440" value="440" step="1"><span id="freqLabel"></span></p>
+      <p>？<input type="range" id="q" min="1" max="1000" value="50" step="1"><span id="qLabel"></span></p>
+      <p>音量<input type="range" id="vol" min="0.0" max="1" value="1" step="0.01"><span id="volLabel"></span></p>
+    </div>
+    <div id="error"></div>
+<script>
+(function(){
+
+    const canvas = document.getElementById("canvas");
+    const canvasCtx = canvas.getContext("2d");
+
+    const ctx = new window.AudioContext();
+    
+
+    logErr(window.navigator.mediaDevices);
+    window.navigator.mediaDevices
+        .getUserMedia({audio:true})
+        .then(audioListen)
+        .catch(logErr)
+    function logErr(msg){
+        const error = document.getElementById("error");
+        error.innerText = "ERROR:"+msg.toString();
+    }
+
+
+    function audioListen(stream){
+        const src1 = ctx.createMediaStreamSource(stream);
+        var gain = ctx.createGain();
+        gain.gain.value = 1;
+        document.getElementById("vol").addEventListener("change",function(){
+            gain.gain.value = +this.value;
+            volLabel.innerText = this.value;
+        });
+
+        var biq = ctx.createBiquadFilter();
+        biq.type = "NOTCH";
+        biq.frequency.value = 440;
+        document.getElementById("freq").addEventListener("change",function(){
+            biq.frequency.value = +this.value;
+            freqLabel.innerText = this.value;
+        });
+        biq.Q.value = 50;
+        document.getElementById("q").addEventListener("change",function(){
+            biq.Q.value = +this.value;
+            qLabel.innerText = this.value;
+        });
+
+        src1.connect(gain);
+        gain.connect(biq);
+        biq.connect(ctx.destination);
+
+
+        var anl = ctx.createAnalyser();
+
+        var bufferLength = anl.frequencyBinCount;
+        var frequencyData = new Uint8Array(bufferLength);
+        //anl.getByteTimeDomainData(timeDomainData);
+        anl.getByteFrequencyData(frequencyData);
+        console.log(frequencyData)
+
+        var freqLabel = document.getElementById("freqLabel");
+        var qLabel = document.getElementById("qLabel");
+        var volLabel = document.getElementById("volLabel");
+
+        biq.connect(anl);
+
+        var drawerSet = {
+            frequencyData:frequencyData,
+            anl:anl,
+            bufferLength:bufferLength
+        };
+
+        drawer(drawerSet);
+
+    }
+
+    function drawer(set){
+        //var drawVisual = requestAnimationFrame(draw);
+        setInterval(draw,100);
+        
+        function draw(){
+            var WIDTH = 500, HEIGHT = 500;
+
+            var bufferLength = set.anl.frequencyBinCount;
+            var frequencyData = new Uint8Array(bufferLength);
+            set.anl.getByteTimeDomainData(frequencyData);
+
+            canvasCtx.fillStyle = 'rgb(255, 255, 255)';
+            canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            canvasCtx.lineWidth = 2;
+            canvasCtx.strokeStyle = 'rgb(0, 153, 204)';
+
+            canvasCtx.beginPath();
+
+            var sliceWidth = WIDTH * 1.0 / bufferLength;
+            var x = 0;
+
+            for(var i = 0; i < set.bufferLength; i++) {
+        
+                var v = frequencyData[i] / 128.0;
+                var y = v * HEIGHT/2;
+
+                if(i === 0) {
+                canvasCtx.moveTo(x, y);
+                } else {
+                canvasCtx.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            };
+
+            canvasCtx.lineTo(canvas.width, canvas.height/2);
+            canvasCtx.stroke();
+
+        }
+    }
+
+
+
+
+}())
+</script>
+</body>
+</html>
