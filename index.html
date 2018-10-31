@@ -28,14 +28,14 @@
 <script>
 (function(){
     
+    const error = document.getElementById("error");
     function logErr(msg){
-        const error = document.getElementById("error");
-        error.innerText = "ERROR:"+msg.toString();
+        error.innerHtml = error.innerText+"<br/>"+msg.toString();
     }
     logErr("LOG");
     
     const canvas = document.getElementById("canvas");
-    logErr(canvas);
+    logErr("canvas");
     
     const canvasCtx = canvas.getContext("2d");
     logErr(canvasCtx);
