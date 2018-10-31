@@ -42,7 +42,7 @@
     const canvasCtx = canvas.getContext("2d");
     logErr(canvasCtx);
 
-    const ctx = new window.AudioContext();
+    const ctx = window.AudioContext ? new window.AudioContext() : new window.webkitAudioContext();
     logErr(ctx);
     
     logErr(window.navigator.mediaDevices||"mediaDevices not found");
