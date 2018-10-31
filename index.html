@@ -35,9 +35,13 @@
     logErr("LOG");
     
     const canvas = document.getElementById("canvas");
+    logErr(canvas);
+    
     const canvasCtx = canvas.getContext("2d");
+    logErr(canvasCtx);
 
     const ctx = new window.AudioContext();
+    logErr(ctx);
     
     logErr(window.navigator.mediaDevices||"mediaDevices not found");
     
