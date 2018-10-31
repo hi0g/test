@@ -27,22 +27,25 @@
     <div id="error"></div>
 <script>
 (function(){
-
+    
+    function logErr(msg){
+        const error = document.getElementById("error");
+        error.innerText = "ERROR:"+msg.toString();
+    }
+    logErr("LOG");
+    
     const canvas = document.getElementById("canvas");
     const canvasCtx = canvas.getContext("2d");
 
     const ctx = new window.AudioContext();
     
-
-    logErr(window.navigator.mediaDevices);
+    logErr(window.navigator.mediaDevices||"mediaDevices not found");
+    
     window.navigator.mediaDevices
         .getUserMedia({audio:true})
         .then(audioListen)
-        .catch(logErr)
-    function logErr(msg){
-        const error = document.getElementById("error");
-        error.innerText = "ERROR:"+msg.toString();
-    }
+        .catch(logErr);
+    
 
 
     function audioListen(stream){
